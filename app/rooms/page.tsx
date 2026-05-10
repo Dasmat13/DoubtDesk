@@ -24,6 +24,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 interface Classroom {
     id: number;
     name: string;
@@ -32,6 +34,25 @@ interface Classroom {
     teacherEmail: string;
     inviteCode?: string;
     role?: string;
+}
+
+function RoomCardSkeleton() {
+    return (
+        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6">
+            <Skeleton className="w-14 h-14 rounded-2xl" />
+            <div className="space-y-3">
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </div>
+            <div className="pt-6 border-t border-white/10 flex items-center justify-between">
+                <div className="flex gap-4">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                </div>
+                <Skeleton className="w-10 h-10 rounded-full" />
+            </div>
+        </div>
+    );
 }
 
 export default function RoomsPage() {
@@ -163,8 +184,13 @@ export default function RoomsPage() {
                 </div>
 
                 {loading ? (
-                    <div className="h-[400px] flex items-center justify-center">
-                        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+                    <div className="space-y-6">
+                        <Skeleton className="h-8 w-64" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <RoomCardSkeleton key={i} />
+                            ))}
+                        </div>
                     </div>
                 ) : rooms.length === 0 ? (
                     <div className="bg-white/5 border border-white/10 rounded-[3rem] p-10 text-center space-y-4">

@@ -4,10 +4,84 @@ import { useEffect, useState } from "react"
 import { TrendingUp, Target, Zap, MessageCircle, AlertCircle, Loader2, Sparkles, Brain, BookOpen } from "lucide-react"
 import Sidebar from "@/components/Sidebar"
 
+import { Skeleton } from "@/components/ui/skeleton"
+
 type AnalyticsData = {
     trendingDoubts: any[];
     mostAskedTopics: any[];
     weakTopics: any[];
+}
+
+function DashboardSkeleton() {
+    return (
+        <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto pb-24 text-slate-200">
+            {/* Dashboard Heading Skeleton */}
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-white/5">
+                <div className="space-y-4">
+                    <Skeleton className="h-6 w-48 rounded-full" />
+                    <Skeleton className="h-16 w-64 md:w-96" />
+                    <Skeleton className="h-6 w-72" />
+                </div>
+            </header>
+
+            {/* Metrics Grid Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Section 1: Trending Doubts Skeleton */}
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-xl" />
+                        <Skeleton className="h-8 w-48" />
+                    </div>
+                    <div className="grid gap-4">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="p-5 bg-white/5 border border-white/5 rounded-2xl space-y-3">
+                                <div className="flex justify-between">
+                                    <Skeleton className="h-4 w-20" />
+                                    <Skeleton className="h-4 w-24" />
+                                </div>
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-3/4" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Section 2 & 3 Skeleton */}
+                <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-xl" />
+                        <Skeleton className="h-8 w-48" />
+                    </div>
+                    <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-6 space-y-6">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="space-y-2">
+                                <div className="flex justify-between">
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-4 w-16" />
+                                </div>
+                                <Skeleton className="h-2 w-full rounded-full" />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-3xl space-y-4">
+                        <Skeleton className="h-4 w-32" />
+                        <div className="space-y-3">
+                            {[1, 2].map((i) => (
+                                <div key={i} className="flex items-center gap-3 p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                                    <Skeleton className="h-8 w-8 rounded-lg" />
+                                    <div className="space-y-2 flex-1">
+                                        <Skeleton className="h-4 w-24" />
+                                        <Skeleton className="h-3 w-32" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default function Dashboard() {
@@ -31,11 +105,7 @@ export default function Dashboard() {
     }, []);
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#020617]">
-                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
-            </div>
-        );
+        return <DashboardSkeleton />;
     }
 
     return (
