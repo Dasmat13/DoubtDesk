@@ -35,6 +35,7 @@ import AskDoubt from "@/components/AskDoubt";
 import DoubtCard from "@/components/DoubtCard";
 import Dashboard from "@/app/dashboard/page"; // We can reuse or adapt the Analytics view
 import AskAIView from "../../../components/AskAIView"; 
+import ExportButton from "@/components/ExportButton";
 import { toast } from "sonner";
 
 interface Classroom {
@@ -182,12 +183,19 @@ export default function ClassroomPage() {
                             <ChevronLeft className="w-4 h-4" /> Back to Campus
                         </button>
 
-                        <button 
-                            onClick={() => setIsCodeModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-white/10 hover:text-white transition-all shadow-inner"
-                        >
-                            <Sparkles className="w-3.5 h-3.5 text-blue-400" /> Class Code
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <ExportButton 
+                                classroomId={String(id)} 
+                                classroomName={classroom?.name || ""} 
+                                isTeacher={classroom?.role === "teacher"} 
+                            />
+                            <button 
+                                onClick={() => setIsCodeModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-white/10 hover:text-white transition-all shadow-inner"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 text-blue-400" /> Class Code
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mt-4">
