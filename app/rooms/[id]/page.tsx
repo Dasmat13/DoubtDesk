@@ -577,7 +577,8 @@ function ClassroomInsightsView({ classroomId, role }: { classroomId: number, rol
                 </div>
                 <button 
                     onClick={fetchData}
-                    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-blue-400 transition-all group"
+                    disabled={loading}
+                    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-blue-400 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Activity className={`w-3.5 h-3.5 ${loading ? 'animate-pulse text-blue-500' : 'group-hover:rotate-12'} transition-all`} />
                     {loading ? 'Analyzing...' : 'Refresh Data'}

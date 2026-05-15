@@ -235,7 +235,7 @@ export default function AskAIView({ classroomId = null, onSuccess, initialDoubt 
                             disabled={isLoading || (!prompt.trim() && !imageBase64)}
                             className="flex items-center gap-2 px-5 py-3 bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 border border-pink-500/20 rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all disabled:opacity-40"
                         >
-                            <Brain className="w-3 h-3" /> ELI 10
+                            {isLoading && currentType === 'eli10' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Brain className="w-3 h-3" />} ELI 10
                         </button>
                         <button
                             onClick={() => handleAskAI('standard')}
@@ -300,7 +300,7 @@ export default function AskAIView({ classroomId = null, onSuccess, initialDoubt 
                                             disabled={isVideoLoading}
                                             className="ml-auto flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold uppercase tracking-tighter text-[9px] shadow-lg shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-50"
                                         >
-                                            <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400" /> Generate Video
+                                            {isVideoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400" />} {isVideoLoading ? "Generating..." : "Generate Video"}
                                         </button>
                                     )}
                                 </div>

@@ -37,6 +37,8 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
     
     const [isDoubtOwner, setIsDoubtOwner] = useState(false);
     const [isSolving, setIsSolving] = useState(false);
+    const [isEditingReply, setIsEditingReply] = useState(false);
+    const [isDeletingReply, setIsDeletingReply] = useState(false);
 
     // UI State
     const [activeTab, setActiveTab] = useState<'all' | 'chat' | 'solutions'>('all');
@@ -183,6 +185,7 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
 
     const handleEditReply = async (replyId: number) => {
         if (!editContent.trim()) return;
+        setIsEditingReply(true);
         try {
             const res = await fetch(`/api/replies/action/${replyId}`, {
                 method: "PATCH",
@@ -198,10 +201,13 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
             }
         } catch (error) {
             toast.error("Failed to update");
+        } finally {
+            setIsEditingReply(false);
         }
     };
 
     const handleDeleteReply = async (replyId: number) => {
+        setIsDeletingReply(true);
         try {
             const res = await fetch(`/api/replies/action/${replyId}`, {
                 method: "DELETE"
@@ -214,6 +220,7 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
         } catch (error) {
             toast.error("Failed to delete");
         } finally {
+            setIsDeletingReply(false);
             setMenuOpenId(null);
         }
     };
@@ -349,9 +356,10 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                                                     e.stopPropagation();
                                                     handleDeleteReply(reply.id);
                                                 }}
-                                                className="w-full flex items-center gap-2 px-4 py-2.5 text-[10px] font-black uppercase text-red-400 hover:bg-red-600 hover:text-white transition-all text-left"
+                                                disabled={isDeletingReply}
+                                                className="w-full flex items-center gap-2 px-4 py-2.5 text-[10px] font-black uppercase text-red-400 hover:bg-red-600 hover:text-white transition-all text-left disabled:opacity-50"
                                             >
-                                                <Trash2 className="w-3 h-3" /> Delete
+                                                {isDeletingReply ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />} Delete
                                             </button>
                                         </div>
                                     )}
@@ -370,8 +378,14 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                                     className="w-full bg-slate-950/50 border border-blue-500/20 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all h-28 resize-none"
                                 />
                                 <div className="flex gap-2 justify-end">
-                                    <button onClick={() => setEditingId(null)} className="px-4 py-2 text-[10px] font-black uppercase text-slate-500 hover:text-white">Cancel</button>
-                                    <button onClick={() => handleEditReply(reply.id)} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-900/40">Save</button>
+                                    <button onClick={() => setEditingId(null)} disabled={isEditingReply} className="px-4 py-2 text-[10px] font-black uppercase text-slate-500 hover:text-white disabled:opacity-50">Cancel</button>
+                                    <button 
+                                        onClick={() => handleEditReply(reply.id)} 
+                                        disabled={isEditingReply || !editContent.trim()}
+                                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-900/40 disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {isEditingReply ? <Loader2 className="w-3 h-3 animate-spin" /> : null} Save
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -403,7 +417,13 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                                 : "bg-white/5 text-slate-500 border-white/5 hover:text-white hover:bg-white/10"
                             }`}
                         >
-                            <ThumbsUp className={`w-3.5 h-3.5 ${reply.hasUpvoted ? 'fill-blue-400' : 'group-hover/vote:scale-110 transition-transform'}`} />
+                            <ThumbsUp
+                                className={`w-3.5 h-3.5 ${
+                                    reply.hasUpvoted
+                                        ? 'fill-blue-400'
+                                        : 'group-hover/vote:scale-110 transition-transform'
+                                }`}
+                            />
                             <span className="text-[10px] font-black uppercase tracking-widest">
                                 {reply.upvotes || 0} <span className="hidden sm:inline ml-1 opacity-60">Helpful</span>
                             </span>
