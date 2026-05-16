@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Send, CheckCircle, MessageSquare, Loader2, Upload, File, ZoomIn, MoreVertical, Pencil, Trash2, PlusCircle, Eye, EyeOff, Bold, Italic, Code, List, ThumbsUp } from "lucide-react";
+import { X, Send, CheckCircle, MessageSquare, Loader2, Upload, File, ZoomIn, MoreVertical, Pencil, Trash2, PlusCircle, Eye, EyeOff, Bold, Italic, Code, List, ThumbsUp, FileText, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import MarkdownRenderer from "./MarkdownRenderer";
 
@@ -307,6 +307,14 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+                toast.error("Only image (PNG, JPG, GIF, WebP) and PDF files are supported.");
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error("File size exceeds 5MB limit.");
+                return;
+            }
             setFileName(file.name);
             const reader = new FileReader();
             reader.onloadend = () => setSolutionImage(reader.result as string);
@@ -450,16 +458,39 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                                     </div>
                                 )}
                                 {reply.imageUrl && (
-                                    <button
-                                        onClick={() => { setFullscreenImageUrl(reply.imageUrl!); setIsFullscreenImageOpen(true); }}
-                                        className="mt-2 rounded-2xl overflow-hidden border border-white/5 group/img relative cursor-zoom-in active:scale-[0.98] transition-all w-full"
-                                        aria-label="View image fullscreen"
-                                    >
-                                        <img src={reply.imageUrl} alt="Solution" className="w-full h-auto object-cover max-h-[32rem]" />
-                                        <div className="absolute inset-0 bg-white/0 group-hover/img:bg-white/5 flex items-center justify-center transition-all">
-                                            <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover/img:opacity-100 scale-50 group-hover/img:scale-100 transition-all" />
+                                    reply.imageUrl.startsWith("data:application/pdf") ? (
+                                        <div className="mt-3 p-4 rounded-2xl bg-slate-950/80 border border-red-500/20 flex items-center justify-between gap-4 group/pdf hover:border-red-500/40 transition-all shadow-lg w-full max-w-sm">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 group-hover/pdf:scale-105 transition-transform">
+                                                    <FileText className="w-5 h-5 text-red-400" />
+                                                </div>
+                                                <div className="min-w-0 text-left">
+                                                    <p className="text-xs font-bold text-white truncate">Attached Document.pdf</p>
+                                                    <p className="text-[9px] text-slate-400 uppercase tracking-widest font-black mt-0.5">PDF Attachment</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); window.open(reply.imageUrl!, "_blank"); }}
+                                                className="p-2.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 rounded-xl transition-all border border-red-500/20 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0"
+                                                title="Open PDF in new tab"
+                                            >
+                                                <ExternalLink className="w-3.5 h-3.5" /> Open
+                                            </button>
                                         </div>
-                                    </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => { setFullscreenImageUrl(reply.imageUrl!); setIsFullscreenImageOpen(true); }}
+                                            className="mt-2 rounded-2xl overflow-hidden border border-white/5 group/img relative cursor-zoom-in active:scale-[0.98] transition-all w-full"
+                                            aria-label="View image fullscreen"
+                                        >
+                                            <img src={reply.imageUrl} alt="Solution" className="w-full h-auto object-cover max-h-[32rem]" />
+                                            <div className="absolute inset-0 bg-white/0 group-hover/img:bg-white/5 flex items-center justify-center transition-all">
+                                                <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover/img:opacity-100 scale-50 group-hover/img:scale-100 transition-all" />
+                                            </div>
+                                        </button>
+                                    )
                                 )}
                             </>
                         )}
@@ -717,48 +748,70 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
 
                             {solutionImage && (
                                 <div className="relative group/preview animate-in zoom-in-95 duration-300 w-full sm:w-fit">
-                                    <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-500/20 bg-slate-950 shadow-2xl group/img">
-                                        <img src={solutionImage} className="w-full sm:w-64 h-36 object-cover opacity-80 group-hover/img:opacity-100 transition-all duration-500" />
-
-                                        {/* Image Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex flex-col justify-end p-3 translate-y-2 group-hover/img:translate-y-0 transition-transform">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400 truncate max-w-full">
-                                                {fileName || "Live Attachment"}
-                                            </span>
-                                        </div>
-
-                                        {/* Actions on Hover */}
-                                        <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover/img:opacity-100 flex items-center justify-center gap-3 transition-all duration-300">
-                                            <button
-                                                type="button"
-                                                onClick={() => { setFullscreenImageUrl(solutionImage); setIsFullscreenImageOpen(true); }}
-                                                className="w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white transition-all scale-75 group-hover/img:scale-100"
-                                                aria-label="Zoom image"
-                                            >
-                                                <ZoomIn className="w-5 h-5" />
-                                            </button>
+                                    {solutionImage.startsWith("data:application/pdf") ? (
+                                        <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950 border border-red-500/20 shadow-2xl">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center shrink-0">
+                                                    <FileText className="w-6 h-6 text-red-500" />
+                                                </div>
+                                                <div className="min-w-0 text-left">
+                                                    <p className="text-xs font-bold text-white truncate max-w-xs">{fileName}</p>
+                                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">PDF Attachment</p>
+                                                </div>
+                                            </div>
                                             <button
                                                 type="button"
                                                 onClick={() => { setSolutionImage(""); setFileName(""); }}
-                                                className="w-10 h-10 bg-red-500/20 hover:bg-red-500 backdrop-blur-md rounded-xl flex items-center justify-center text-white transition-all scale-75 group-hover/img:scale-100 border border-red-500/20 hover:border-transparent"
-                                                aria-label="Delete image"
+                                                className="p-2.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 rounded-xl transition-all border border-red-500/20 text-xs font-bold uppercase tracking-wider shrink-0"
+                                                title="Remove PDF"
                                             >
-                                                <Trash2 className="w-5 h-5" />
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-500/20 bg-slate-950 shadow-2xl group/img">
+                                            <img src={solutionImage} className="w-full sm:w-64 h-36 object-cover opacity-80 group-hover/img:opacity-100 transition-all duration-500" />
+
+                                            {/* Image Overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex flex-col justify-end p-3 translate-y-2 group-hover/img:translate-y-0 transition-transform">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400 truncate max-w-full">
+                                                    {fileName || "Live Attachment"}
+                                                </span>
+                                            </div>
+
+                                            {/* Actions on Hover */}
+                                            <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover/img:opacity-100 flex items-center justify-center gap-3 transition-all duration-300">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setFullscreenImageUrl(solutionImage); setIsFullscreenImageOpen(true); }}
+                                                    className="w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white transition-all scale-75 group-hover/img:scale-100"
+                                                    aria-label="Zoom image"
+                                                >
+                                                    <ZoomIn className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSolutionImage(""); setFileName(""); }}
+                                                    className="w-10 h-10 bg-red-500/20 hover:bg-red-500 backdrop-blur-md rounded-xl flex items-center justify-center text-white transition-all scale-75 group-hover/img:scale-100 border border-red-500/20 hover:border-transparent"
+                                                    aria-label="Delete image"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
                             <div className="flex flex-col sm:flex-row gap-4 relative z-10">
                                 <div className="flex-1 relative group overflow-hidden rounded-2xl">
-                                    <input type="file" onChange={handleFileChange} accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                                    <input type="file" onChange={handleFileChange} accept="image/png,image/jpeg,image/gif,image/webp,application/pdf" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                                     <div className="w-full h-full min-h-[60px] px-6 border-2 border-dashed border-white/5 bg-white/[0.02] flex items-center justify-center gap-3 group-hover:bg-emerald-500/5 group-hover:border-emerald-500/30 transition-all duration-300">
                                         <div className="p-2 rounded-lg bg-white/5 group-hover:bg-emerald-500/20 transition-colors">
                                             <Upload className="w-4 h-4 text-emerald-500" />
                                         </div>
                                         <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] group-hover:text-emerald-400 transition-colors">
-                                            {solutionImage ? "Change Image" : "Attach Artifact"}
+                                            {solutionImage ? "Change Attachment" : "Attach Visual or PDF"}
                                         </span>
                                     </div>
                                 </div>
