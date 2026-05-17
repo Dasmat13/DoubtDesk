@@ -8,8 +8,7 @@ import { emailNotificationLimiter } from "../lib/ratelimit";
 import { sendReplyNotificationEmail } from "../lib/email";
 
 export const helloWorld = inngest.createFunction(
-    { id: "hello-world" },
-    { event: "test/hello.world" },
+    { id: "hello-world", triggers: [{ event: "test/hello.world" }] },
     async ({ event, step }) => {
         await step.sleep("wait-a-moment", "1s");
         return { message: `Hello ${event.data.email}!` };
@@ -17,8 +16,7 @@ export const helloWorld = inngest.createFunction(
 );
 
 export const cleanupTempAssets = inngest.createFunction(
-    { id: "cleanup-temp-assets" },
-    { cron: "0 * * * *" }, // Runs hourly to clean up old files and keep disk space free
+    { id: "cleanup-temp-assets", triggers: [{ cron: "0 * * * *" }] },
     async ({ step }) => {
         const deletedFiles = await step.run("delete-old-files", async () => {
             const tempDir = path.resolve("./public/temp-assets");
@@ -51,8 +49,7 @@ export const cleanupTempAssets = inngest.createFunction(
 );
 
 export const sendReplyNotification = inngest.createFunction(
-    { id: "send-reply-notification" },
-    { event: "reply.created" },
+    { id: "send-reply-notification", triggers: [{ event: "reply.created" }] },
     async ({ event, step }) => {
         const { doubtId, replyId, replierName, replierEmail, replyContent } = event.data;
 
