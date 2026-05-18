@@ -1,10 +1,10 @@
-/** @type {import('next').NextConfig} */
+n/** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: [
-      "pdf-parse", 
-      "@remotion/bundler", 
-      "@remotion/renderer", 
+      "pdf-parse",
+      "@remotion/bundler",
+      "@remotion/renderer",
       "ffmpeg-static",
       "openai",
       "esbuild",
@@ -12,9 +12,10 @@ const nextConfig = {
       "axios",
       "tesseract.js",
       "react-katex",
-      "katex"
+      "katex",
     ],
   },
 };
 
 export default nextConfig;
+

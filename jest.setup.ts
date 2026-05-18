@@ -20,15 +20,16 @@ if (!String.prototype.toWellFormed) {
 }
 
 const { Request, Response, Headers, fetch, FormData: UndiciFormData } = require('undici');
+global.FormData = (globalThis.FormData || UndiciFormData) as any;
 
 Object.defineProperties(globalThis, {
     Request: { value: Request, writable: true, configurable: true },
     Response: { value: Response, writable: true, configurable: true },
     Headers: { value: Headers, writable: true, configurable: true },
     fetch: { value: fetch, writable: true, configurable: true },
+    FormData: { value: global.FormData, writable: true, configurable: true },
 });
 
-global.FormData = (globalThis.FormData || UndiciFormData) as any;
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

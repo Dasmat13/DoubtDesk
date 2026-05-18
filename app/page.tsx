@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, useClerk, UserButton } from "@clerk/nextjs";
-import { FileText, Map, MessageCircle, FileEdit, ArrowRight, Mail, Linkedin, Github } from "lucide-react";
+import { Sparkles, FileText, Map, MessageCircle, FileEdit, ArrowRight, Mail, Linkedin, Github, LayoutGrid, Clipboard, Activity, Users } from "lucide-react";
 import Link from "next/link";
-import { Inter, Staatliches, IBM_Plex_Mono } from "next/font/google";
-import ShapeGrid from "@/components/ShapeGrid";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,14 +15,48 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ShapeGrid from "@/components/ShapeGrid";
+import { Inter, Staatliches } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
-const staatliches = Staatliches({ subsets: ["latin"], weight: "400" });
-const ibmPlexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"] });
+const staatliches = Staatliches({ weight: "400", subsets: ["latin"] });
 
 export default function Home() {
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const { signOut } = useClerk();
+
+  const features = [
+    {
+      title: "Real-time collaborative discussions",
+      description: "Share questions, answers, and classroom updates instantly across study groups.",
+      icon: MessageCircle,
+    },
+    {
+      title: "Smart classroom management",
+      description: "Organize learning spaces, schedules, and teacher workflows with ease.",
+      icon: LayoutGrid,
+    },
+    {
+      title: "Notes and resource sharing",
+      description: "Keep study materials, highlights, and shared guides organized in one hub.",
+      icon: Clipboard,
+    },
+    {
+      title: "Learning roadmaps and guidance",
+      description: "Follow curated study paths that keep learners focused on milestones.",
+      icon: Map,
+    },
+    {
+      title: "AI-powered doubt solving",
+      description: "Get instant, context-aware answers to questions with smart AI support.",
+      icon: Activity,
+    },
+    {
+      title: "Organized study collaboration",
+      description: "Coordinate projects, peer review, and group work with clear tools and structure.",
+      icon: Users,
+    },
+  ];
 
   const handleSignOut = async () => {
     await signOut({ redirectUrl: '/' });
@@ -45,26 +77,56 @@ export default function Home() {
             </h1>
           </Link>
 
+          <div className="hidden sm:flex items-center gap-3">
+            <a
+              href="#features"
+              className="px-4 py-2 text-sm font-semibold text-slate-400 transition-all duration-300 hover:text-[#AABFFF] hover:drop-shadow-[0_0_8px_rgba(170,191,255,0.2)]"
+            >
+              Features
+            </a>
+          </div>
+
           <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
             <SignedOut>
-              <SignInButton mode="modal" forceRedirectUrl="/rooms">
-                <button className="px-3 sm:px-5 py-2 sm:py-2.5 text-sm bg-white/5 hover:bg-white/10 text-white rounded-xl text-sm font-semibold border border-white/10 transition-all hover:shadow-[0_0_16px_rgba(255,255,255,0.08)]">
-                  Sign In
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
-                <button className="px-3 sm:px-5 py-2 sm:py-2.5 bg-[#5E8CFF] hover:bg-[#8BB8FF] text-white rounded-xl text-sm font-semibold shadow-[0_0_14px_rgba(94,140,255,0.28)] transition-all">
-                  Join DoubtDesk
-                </button>
-              </SignUpButton>
+              <div className="flex items-center gap-3">
+                <SignInButton mode="modal" forceRedirectUrl="/rooms">
+                  <button className="group relative overflow-hidden px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-white/10 bg-white/[0.04]
+                          backdrop-blur-md text-white font-semibold text-sm tracking-wide transition-all duration-300 hover:bg-white/[0.08] hover:border-white/20 hover:shadow-[0_0_24px_rgba(255,255,255,0.08)] hover:-translate-y-0.5
+                          active:scale-[0.98]">
+                      {/* Glow Effect */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-white/0 via-white/10 to-white/0 blur-xl" />
+
+                      <span className="relative z-10 flex items-center gap-2">
+                        Sign In
+                      </span>
+                  </button>
+                </SignInButton>
+
+                <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
+                  <button className="group relative overflow-hidden px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#5E8CFF] to-[#7AA2FF] text-white
+                          text-sm font-semibold tracking-wide transition-all duration-300 shadow-[0_0_18px_rgba(94,140,255,0.30)] hover:shadow-[0_0_30px_rgba(94,140,255,0.50)]
+                          hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98]">
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full
+                          transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12"/>
+                    <div className="absolute inset-0 bg-[#8BB8FF]/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    <span className="relative z-10 flex items-center gap-2">
+                      Join DoubtDesk
+                      <span className="transition-transform duration-300 group-hover:translate-x-1">
+                        →
+                      </span>
+                    </span>
+                  </button>
+                </SignUpButton>
+              </div>
             </SignedOut>
             <SignedIn>
               <div className="flex items-center gap-4">
-                <Link href="/rooms" className="hidden sm:block px-4 py-2 text-sm font-semibold text-slate-400 hover:text-[#AABFFF] transition-all hover:drop-shadow-[0_0_8px_rgba(170,191,255,0.2)]">
+                <Link href="/rooms" className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">
                   Classrooms
                 </Link>
-                <Link href="/profile" className="hidden sm:block px-4 py-2 text-sm font-semibold text-slate-400 hover:text-[#AABFFF] transition-all hover:drop-shadow-[0_0_8px_rgba(170,191,255,0.2)]">
+                <Link href="/profile" className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">
                   Profile
                 </Link>
                 <UserButton 
@@ -103,7 +165,7 @@ export default function Home() {
       </AlertDialog>
 
       {/* Hero Section */}
-      <main className="flex-1 pt-[128px] relative overflow-hidden">
+      <main className="flex-1 pt-[128px] relative overflow-hidden scroll-smooth">
         <div className="absolute inset-0 z-0 pointer-events-none">
           <ShapeGrid
             speed={0.45}
@@ -142,8 +204,7 @@ export default function Home() {
                 <SignedIn>
                   <Link href="/rooms" className="w-full sm:w-auto">
                     <button className="group px-10 py-5 bg-[#5E8CFF] text-white rounded-2xl text-lg font-bold hover:bg-[#8BB8FF] hover:shadow-[0_0_24px_rgba(94,140,255,0.35)] transition-all w-full flex items-center justify-center gap-2">
-                      <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>Open</span>
-                      <span>Classroom</span>
+                      <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>Open Classroom</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </Link>
@@ -151,8 +212,7 @@ export default function Home() {
                 <SignedOut>
                   <SignUpButton mode="modal" forceRedirectUrl="/rooms">
                     <button className="group px-10 py-5 bg-white text-slate-950 rounded-2xl text-lg font-bold hover:bg-slate-200 transition-all w-full sm:w-auto flex items-center justify-center gap-2">
-                      <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>Open</span>
-                      <span>Classroom</span>
+                      <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>Open Classroom</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </SignUpButton>
@@ -160,24 +220,63 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="pt-2 xl:pt-3">
-              <div className={`${staatliches.className} mb-6 text-sm tracking-[0.16em] text-[#AABFFF]/40 uppercase`}>
-                Live campus feed
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
+              <SignedIn>
+                <Link href="/rooms" className="w-full sm:w-auto">
+                  <button className="group px-10 py-5 bg-blue-600 text-white rounded-2xl text-lg font-bold hover:bg-blue-700 hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all w-full flex items-center justify-center gap-2">
+                    Open Classroom
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </Link>
+              </SignedIn>
+              <SignedOut>
+                <SignUpButton mode="modal" forceRedirectUrl="/rooms">
+                  <button className="group px-10 py-5 bg-white text-slate-950 rounded-2xl text-lg font-bold hover:bg-slate-200 transition-all w-50 flex items-center justify-center gap-2">
+                    Open Classroom
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </SignUpButton>
+              </SignedOut>
+            </div>
+
+          </div>
+        </section>
+
+        <section id="features" className="scroll-mt-28 px-6 py-16 md:py-20 relative z-10">
+          <div className="absolute inset-x-0 top-10 h-40 bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 blur-3xl pointer-events-none" />
+          <div className="max-w-7xl mx-auto">
+            <div className="max-w-3xl mx-auto text-center">
+              <div className={`${staatliches.className} mb-4 text-sm tracking-[0.16em] text-[#AABFFF]/70 uppercase`}>
+                Features
               </div>
-              <div className={`${ibmPlexMono.className} space-y-4 text-base sm:text-lg text-slate-200/85`}>
-                <div className="flex items-start gap-3">
-                  <span className="text-[#AABFFF]/85 font-semibold">&gt;</span>
-                  <p><span className="text-[#8BB8FF]">23</span> students discussing Operating Systems</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[#AABFFF]/85 font-semibold">&gt;</span>
-                  <p><span className="text-[#8BB8FF]">12</span> new notes uploaded</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[#AABFFF]/85 font-semibold">&gt;</span>
-                  <p><span className="text-[#8BB8FF]">4</span> active placement roadmaps</p>
-                </div>
-              </div>
+              <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#F2F5FF] tracking-tight leading-tight">
+                Everything your classroom needs to solve doubts, stay aligned, and move faster.
+              </h3>
+              <p className="mt-5 text-base sm:text-lg text-slate-300/85 leading-8">
+                Built for modern study teams, DoubtDesk blends AI-powered doubt solving, shared resources, and smart classroom flows into a single polished platform.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {features.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.title}
+                    className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 shadow-2xl shadow-slate-950/10 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.06]"
+                  >
+                    <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-[#5E8CFF]/10 text-[#8BB8FF] shadow-[0_0_18px_rgba(94,140,255,0.18)] transition-colors duration-300 group-hover:bg-[#5E8CFF]/15">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <h4 className="mt-6 text-xl font-semibold text-[#F2F5FF] tracking-tight">
+                      {feature.title}
+                    </h4>
+                    <p className="mt-3 text-sm leading-7 text-slate-300/80">
+                      {feature.description}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>

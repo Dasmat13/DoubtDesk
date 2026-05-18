@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Loader2, Upload, File, Eye, EyeOff, Bold, Italic, Code, List, Tags, Sparkles, FileText, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import MarkdownRenderer from "./MarkdownRenderer";
-import { useRef } from "react";
 
 interface AskDoubtProps {
     defaultSubject?: string;
@@ -57,6 +56,15 @@ const suggestTags = (text: string, subject: string) => {
  */
 export default function AskDoubt({ defaultSubject = "", isOpen, onClose, onSuccess, doubtToEdit, classroomId = null, type = 'community' }: AskDoubtProps) {
     const [content, setContent] = useState(doubtToEdit?.content || "");
+    const maxLength = 500;
+    const charCount = content.length;
+    let colorClass = "text-slate-400";
+
+if (charCount >= maxLength) {
+  colorClass = "text-red-500";
+} else if (charCount >= maxLength * 0.8) {
+  colorClass = "text-yellow-400";
+}
     const [subject, setSubject] = useState(doubtToEdit?.subject || defaultSubject);
     const [imageUrl, setImageUrl] = useState(doubtToEdit?.imageUrl || "");
     const [fileName, setFileName] = useState(
@@ -65,13 +73,49 @@ export default function AskDoubt({ defaultSubject = "", isOpen, onClose, onSucce
     const [fileSize, setFileSize] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [userName, setUserName] = useState("");
-    const [isPreviewMode, setIsPreviewMode] = useState(false);
-    const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
     const [tags, setTags] = useState<string[]>(doubtToEdit?.tags?.map((tag: any) => tag.name) || []);
     const [tagDraft, setTagDraft] = useState("");
     const [subjectWasEdited, setSubjectWasEdited] = useState(false);
     const [suggestedSubject, setSuggestedSubject] = useState("");
     const [isDragging, setIsDragging] = useState(false);
+    const [isPreviewMode, setIsPreviewMode] = useState(false);
+    const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const insertMarkdown = (type: "bold" | "italic" | "code" | "list") => {
+        const textarea = contentTextareaRef.current;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selectedText = text.substring(start, end);
+
+        let replacement = "";
+        switch (type) {
+            case "bold":
+                replacement = `**${selectedText || "bold text"}**`;
+                break;
+            case "italic":
+                replacement = `*${selectedText || "italic text"}*`;
+                break;
+            case "code":
+                replacement = `\`${selectedText || "code"}\``;
+                break;
+            case "list":
+                replacement = `\n- ${selectedText || "list item"}`;
+                break;
+        }
+
+        const newContent = text.substring(0, start) + replacement + text.substring(end);
+        setContent(newContent);
+
+        // Reset cursor pos and focus
+        setTimeout(() => {
+            textarea.focus();
+            const newCursorPos = start + replacement.length;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+    };
 
     useEffect(() => {
         if (doubtToEdit) {
@@ -119,32 +163,6 @@ export default function AskDoubt({ defaultSubject = "", isOpen, onClose, onSucce
         }
         setUserName(savedName);
     }, []);
-
-    const insertMarkdown = (type: string) => {
-        const textarea = contentTextareaRef.current;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const text = textarea.value;
-        const selectedText = text.substring(start, end);
-        let replacement = "";
-
-        switch (type) {
-            case "bold": replacement = `**${selectedText || "bold text"}**`; break;
-            case "italic": replacement = `*${selectedText || "italic text"}*`; break;
-            case "code": replacement = `\`\`\`\n${selectedText || "code"}\n\`\`\``; break;
-            case "list": replacement = `\n- ${selectedText || "list item"}`; break;
-        }
-
-        const newText = text.substring(0, start) + replacement + text.substring(end);
-        setContent(newText);
-        
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + replacement.length, start + replacement.length);
-        }, 0);
-    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -198,6 +216,10 @@ export default function AskDoubt({ defaultSubject = "", isOpen, onClose, onSucce
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (charCount > maxLength) {
+            toast.error("Character limit exceeded (500)");
+            return;
+            }
         if ((!content.trim() && !imageUrl) || !subject.trim()) return;
 
         setIsSubmitting(true);
@@ -315,21 +337,26 @@ export default function AskDoubt({ defaultSubject = "", isOpen, onClose, onSucce
                                 <MarkdownRenderer content={content || "*Nothing to preview*"} />
                             </div>
                         ) : (
-                            <textarea
-                                ref={contentTextareaRef}
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                                        e.preventDefault();
-                                        if (content.trim() || imageUrl) {
-                                            handleSubmit(e as any);
+                            <>
+                                <textarea
+                                    ref={contentTextareaRef}
+                                    value={content}
+                                    onChange={(e) => setContent(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                            e.preventDefault();
+                                            if (content.trim() || imageUrl) {
+                                                handleSubmit(e as any);
+                                            }
                                         }
-                                    }
-                                }}
-                                placeholder="Type your question here... (Markdown supported)"
-                                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all resize-none"
-                            />
+                                    }}
+                                    placeholder="Type your question here... (Markdown supported)"
+                                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all resize-none"
+                                />
+                                <p className={`text-xs text-right mt-1 ${colorClass}`}>
+                                    {charCount} / {maxLength}
+                                </p>
+                            </>
                         )}
                     </div>
 
