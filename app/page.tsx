@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { SignInButton, SignUpButton, SignedIn, SignedOut, useClerk, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useClerk, UserButton } from "@clerk/nextjs";
 import { FileText, Map, MessageCircle, FileEdit, ArrowRight, Mail, Linkedin, Github } from "lucide-react";
 import Link from "next/link";
 import { Inter, Staatliches, IBM_Plex_Mono } from "next/font/google";
 import ShapeGrid from "@/components/ShapeGrid";
+import { dark } from "@clerk/themes";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,16 +49,17 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <SignedOut>
-              <SignInButton mode="modal" forceRedirectUrl="/rooms">
+              <Link href="/sign-in">
                 <button className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-sm font-semibold border border-white/10 transition-all hover:shadow-[0_0_16px_rgba(255,255,255,0.08)]">
                   Sign In
                 </button>
-              </SignInButton>
-              <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
+              </Link>
+
+              <Link href="/sign-up">
                 <button className="px-5 py-2.5 bg-[#5E8CFF] hover:bg-[#8BB8FF] text-white rounded-xl text-sm font-semibold shadow-[0_0_14px_rgba(94,140,255,0.28)] transition-all">
                   Join DoubtDesk
                 </button>
-              </SignUpButton>
+              </Link>
             </SignedOut>
             <SignedIn>
               <div className="flex items-center gap-4">
@@ -67,7 +69,7 @@ export default function Home() {
                 <Link href="/profile" className="hidden sm:block px-4 py-2 text-sm font-semibold text-slate-400 hover:text-[#AABFFF] transition-all hover:drop-shadow-[0_0_8px_rgba(170,191,255,0.2)]">
                   Profile
                 </Link>
-                <UserButton 
+                <UserButton
                   afterSignOutUrl="/"
                   appearance={{
                     elements: {
@@ -149,13 +151,15 @@ export default function Home() {
                   </Link>
                 </SignedIn>
                 <SignedOut>
-                  <SignUpButton mode="modal" forceRedirectUrl="/rooms">
+                  <Link href="/sign-up" className="w-full sm:w-auto">
                     <button className="group px-10 py-5 bg-white text-slate-950 rounded-2xl text-lg font-bold hover:bg-slate-200 transition-all w-full sm:w-auto flex items-center justify-center gap-2">
-                      <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>Open</span>
+                      <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>
+                        Open
+                      </span>
                       <span>Classroom</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
-                  </SignUpButton>
+                  </Link>
                 </SignedOut>
               </div>
             </div>
@@ -182,7 +186,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-{/*Here's Your Previous Footer. I have just commented it in case */}
+      {/*Here's Your Previous Footer. I have just commented it in case */}
       {/* Footer
       <footer className="border-t border-white/5 bg-slate-950/50 py-5">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-slate-500">
