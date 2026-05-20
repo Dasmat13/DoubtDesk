@@ -28,6 +28,7 @@ jest.mock('@/configs/db', () => ({
             if (fields && fields.count) {
                 return createQueryMock([{ count: 2 }]);
             }
+            // Return the mock data wrapped in an array
             return createQueryMock([{
                 id: 1,
                 doubtId: 1,
@@ -40,6 +41,7 @@ jest.mock('@/configs/db', () => ({
                 normalizedName: 'physics'
             }]);
         }),
+        
         insert: jest.fn().mockImplementation(() => ({
             values: jest.fn().mockImplementation(() => ({
                 returning: jest.fn().mockResolvedValue([{

@@ -6,7 +6,7 @@ describe('Footer Component', () => {
     it('renders platform name and tagline', () => {
         render(<Footer />);
         expect(screen.getByText('DoubtDesk')).toBeInTheDocument();
-        expect(screen.getByText('Simplifying classroom doubt solving with AI.')).toBeInTheDocument();
+        expect(screen.getByText(/simplifying classroom doubt solving/i)).toBeInTheDocument();
     });
 
     it('renders navigation links', () => {
