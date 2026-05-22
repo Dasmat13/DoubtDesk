@@ -12,13 +12,15 @@ export default function Footer() {
             links: [
                 { label: "Dashboard", href: "/dashboard" },
                 { label: "Virtual Campus", href: "/rooms" },
-                { label: "AI Solver", href: "/ai" },
-                { label: "Analytics", href: "/analytics" },
+                { label: "AI Solver", href: "/ask-ai" },
+                { label: "Analytics", href: "/dashboard/analytics" },
             ],
         },
         {
             title: "Resources",
             links: [
+                { label: "Public Doubts", href: "/public-rooms" },
+                { label: "Bookmarks", href: "/bookmarks" },
                 { label: "Privacy Policy", href: "/privacy-policy" },
                 { label: "Terms of Service", href: "/terms-of-service" },
                 { label: "About", href: "/about" },
@@ -30,8 +32,8 @@ export default function Footer() {
             links: [
                 { label: "GitHub", href: "https://github.com/knoxiboy/DoubtDesk" },
                 { label: "Contributors", href: "/contributors" },
-                { label: "Discussions", href: "/discussions" },
-                { label: "Contact", href: "/contact" },
+                { label: "Report Issue", href: "https://github.com/knoxiboy/DoubtDesk/issues" },
+                { label: "Contact", href: "mailto:karankmt.tripathi@gmail.com" },
             ],
         },
     ]
@@ -107,6 +109,8 @@ export default function Footer() {
                                         <li key={link.label}>
                                             <Link
                                                 href={link.href}
+                                                target={link.href.startsWith("http") ? "_blank" : undefined}
+                                                rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                                                 className="relative inline-flex text-sm text-slate-600 dark:text-slate-400 transition-all duration-300 hover:text-blue-500 dark:hover:text-blue-400 hover:translate-x-1 after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-blue-500 dark:after:bg-blue-400 after:transition-all after:duration-300 hover:after:w-3/4"
                                             >
                                                 {link.label}
