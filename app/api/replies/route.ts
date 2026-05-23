@@ -12,6 +12,7 @@ export async function GET(req: Request) {
         const user = await currentUser();
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         const email = user.primaryEmailAddress?.emailAddress;
+        const authenticatedUserId = user.id;
         if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
         // 0. Check if user is blocked
@@ -26,7 +27,8 @@ export async function GET(req: Request) {
 
         const { searchParams } = new URL(req.url);
         const doubtIdStr = searchParams.get("doubtId");
-        const userName = searchParams.get("userName");
+        // Use stable authenticated id when available; fall back to client-supplied anonymous name
+        const userIdentifier = authenticatedUserId || searchParams.get("userName");
 
         if (!doubtIdStr) {
             return NextResponse.json({ error: "Doubt ID required" }, { status: 400 });
@@ -52,8 +54,8 @@ export async function GET(req: Request) {
             .orderBy(asc(repliesTable.createdAt));
 
         let repliesWithVotes = data;
-        if (userName) {
-            const userUpvotes = await db.select().from(replyLikesTable).where(eq(replyLikesTable.userName, userName));
+        if (userIdentifier) {
+            const userUpvotes = await db.select().from(replyLikesTable).where(eq(replyLikesTable.userName, userIdentifier));
             const upvotedReplyIds = new Set(userUpvotes.map((v: any) => v.replyId));
             repliesWithVotes = data.map((reply: any) => ({
                 ...reply,
