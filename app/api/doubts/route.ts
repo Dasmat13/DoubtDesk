@@ -6,6 +6,8 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { moderateContent, handleModerationViolation } from "@/lib/moderation";
 import { buildErrorResponse } from "@/lib/error-handler";
+import { parseAndValidateRequest } from "@/lib/validations/validate";
+import { createDoubtSchema } from "@/lib/validations/doubt";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -188,6 +190,12 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
+        const { errorResponse, data } = await parseAndValidateRequest(req, createDoubtSchema);
+        if (errorResponse) return errorResponse;
+        
+        const { userName, subject, content, imageUrl, classroomId, type, tags } = data;
+        const parsedClassroomId = classroomId ? parseInt(classroomId.toString()) : null;
+
         const user = await currentUser();
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -202,13 +210,6 @@ export async function POST(req: Request) {
                 new Error(`Your account is temporarily blocked due to safety violations. Access will be restored on ${unlockDate}.`)
             );
             return NextResponse.json(body, { status });
-        }
-
-        const { userName, subject, content, imageUrl, classroomId, type = 'community', tags = [] } = await req.json();
-        const parsedClassroomId = classroomId ? parseInt(classroomId.toString()) : null;
-
-        if (!userName || !subject || (!content?.trim() && !imageUrl)) {
-            return NextResponse.json({ error: "Missing required fields (provide text or image)" }, { status: 400 });
         }
 
         // 1. AI Moderation Check

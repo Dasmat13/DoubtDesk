@@ -3,18 +3,19 @@ import { repliesTable, replyLikesTable } from "@/configs/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
+import { parseAndValidateRequest } from "@/lib/validations/validate";
+import { voteReplySchema } from "@/lib/validations/reply";
 
 export async function POST(req: Request) {
     try {
+        const { errorResponse, data } = await parseAndValidateRequest(req, voteReplySchema);
+        if (errorResponse) return errorResponse;
+
+        const { replyId, userName } = data;
+
         const user = await currentUser();
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const { replyId, userName } = await req.json();
-
-        if (!replyId || !userName) {
-            return NextResponse.json({ error: "Reply ID and User Name are required" }, { status: 400 });
         }
 
         // Check if reply exists

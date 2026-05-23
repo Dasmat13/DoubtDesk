@@ -6,6 +6,8 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { moderateContent, handleModerationViolation } from "@/lib/moderation";
 import { buildErrorResponse } from "@/lib/error-handler";
 import { inngest } from "@/inngest/client";
+import { parseAndValidateRequest } from "@/lib/validations/validate";
+import { createReplySchema } from "@/lib/validations/reply";
 
 export async function GET(req: Request) {
     try {
@@ -70,6 +72,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
+        const { errorResponse, data } = await parseAndValidateRequest(req, createReplySchema);
+        if (errorResponse) return errorResponse;
+
+        const { doubtId, userName, type, content, imageUrl } = data;
+
         const user = await currentUser();
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         const email = user.primaryEmailAddress?.emailAddress;
@@ -85,12 +92,6 @@ export async function POST(req: Request) {
             return NextResponse.json(body, { status });
         }
 
-        const { doubtId, userName, type, content, imageUrl } = await req.json();
-
-        if (!doubtId || !userName || !type) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-        }
-
         // 1. AI Moderation Check
         if (content) {
             const moderation = await moderateContent(content);
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
         }
 
         // Security: Check if it's a teacher doubt
-        const [doubt] = await db.select().from(doubtsTable).where(eq(doubtsTable.id, parseInt(doubtId)));
+        const [doubt] = await db.select().from(doubtsTable).where(eq(doubtsTable.id, doubtId));
         if (doubt?.type === 'teacher') {
             const [room] = await db.select().from(classroomsTable).where(eq(classroomsTable.id, doubt.classroomId!));
             if (room && email && room.teacherEmail !== email) {
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
         }
 
         const newReply = await db.insert(repliesTable).values({
-            doubtId: parseInt(doubtId),
+            doubtId: doubtId,
             userName,
             userEmail: email,
             type,
@@ -123,7 +124,7 @@ export async function POST(req: Request) {
             await inngest.send({
                 name: "reply.created",
                 data: {
-                    doubtId: parseInt(doubtId),
+                    doubtId: doubtId,
                     replyId: newReply[0].id,
                     replierName: userName,
                     replierEmail: email || "",
@@ -139,7 +140,7 @@ export async function POST(req: Request) {
         // to give immediate feedback on the console.
         if (process.env.NODE_ENV === "development") {
             try {
-                const [d] = await db.select().from(doubtsTable).where(eq(doubtsTable.id, parseInt(doubtId))).limit(1);
+                const [d] = await db.select().from(doubtsTable).where(eq(doubtsTable.id, doubtId)).limit(1);
                 if (d && d.userEmail && d.userEmail !== email) {
                     const [u] = await db.select().from(usersTable).where(eq(usersTable.email, d.userEmail)).limit(1);
                     const notificationsEnabled = u ? u.emailNotificationsEnabled : true;

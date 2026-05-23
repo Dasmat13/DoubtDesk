@@ -2,10 +2,15 @@ import { db } from "@/configs/db";
 import { repliesTable } from "@/configs/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { parseAndValidateRequest } from "@/lib/validations/validate";
+import { updateReplyActionSchema } from "@/lib/validations/reply";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { content, imageUrl } = await req.json();
+        const { errorResponse, data } = await parseAndValidateRequest(req, updateReplyActionSchema);
+        if (errorResponse) return errorResponse;
+
+        const { content, imageUrl } = data;
         const { id } = await params;
         const replyId = parseInt(id);
 

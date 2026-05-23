@@ -7,6 +7,8 @@ import * as googleTTS from 'google-tts-api';
 import axios from 'axios';
 import ffmpeg from 'ffmpeg-static';
 import Tesseract from 'tesseract.js';
+import { parseAndValidateRequest } from '@/lib/validations/validate';
+import { generateVideoSchema } from '@/lib/validations/video';
 
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
@@ -14,7 +16,10 @@ const groq = new Groq({
 
 export async function POST(req: Request) {
     try {
-        let { content, imageUrl } = await req.json();
+        const { errorResponse, data } = await parseAndValidateRequest(req, generateVideoSchema);
+        if (errorResponse) return errorResponse;
+
+        let { content, imageUrl } = data;
 
         // 1. OCR if image is provided
         if (imageUrl && !content) {
