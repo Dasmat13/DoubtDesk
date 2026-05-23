@@ -1,7 +1,7 @@
 import { db } from "@/configs/db";
 import { bookmarksTable, doubtTagsTable, doubtsTable, likesTable, repliesTable, membershipsTable, classroomsTable, tagsTable, usersTable } from "@/configs/schema";
 import { categorizeDoubt } from "@/lib/ai/categorizer";
-import { and, eq, desc, inArray, isNull, or, not, sql } from "drizzle-orm";
+import { and, eq, desc, inArray, isNull, or, not, sql, ilike } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { moderateContent, handleModerationViolation } from "@/lib/moderation";
@@ -10,6 +10,7 @@ import { buildErrorResponse } from "@/lib/error-handler";
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const subject = searchParams.get("subject");
+    const search = searchParams.get("search");
     const userName = searchParams.get("userName");
     const classroomIdStr = searchParams.get("classroomId");
     const classroomId = classroomIdStr ? parseInt(classroomIdStr) : null;
@@ -71,6 +72,16 @@ export async function GET(req: Request) {
 
         if (subject && subject !== "All") {
             conditions.push(eq(doubtsTable.subject, subject));
+        }
+
+        if (search) {
+            conditions.push(
+                or(
+                    ilike(doubtsTable.content, `%${search}%`),
+                    ilike(doubtsTable.subject, `%${search}%`),
+                    ilike(doubtsTable.userName, `%${search}%`)
+                )
+            );
         }
 
         if (type && type !== "All") {

@@ -2,23 +2,17 @@
 
 import { useState } from "react";
 import {
-  SignInButton,
-  SignUpButton,
   SignedIn,
   SignedOut,
   useClerk,
   UserButton,
+
 } from "@clerk/nextjs";
 
 import {
-  FileText,
   Map,
   MessageCircle,
-  FileEdit,
   ArrowRight,
-  Mail,
-  Linkedin,
-  Github,
   LayoutGrid,
   Clipboard,
   Activity,
@@ -39,6 +33,7 @@ import {
 import { ThemeToggle } from "@/components/ThemeToggle";
 import ShapeGrid from "@/components/ShapeGrid";
 import { Inter, Staatliches } from "next/font/google";
+import ClassroomPreviewCard from "@/components/ClassroomPreviewCard";
 
 const inter = Inter({ subsets: ["latin"] });
 const staatliches = Staatliches({ weight: "400", subsets: ["latin"] });
@@ -205,39 +200,41 @@ export default function Home() {
             speed={0.45}
             squareSize={42}
             direction="diagonal"
-            borderColor="rgba(139, 184, 255, 0.10)"
-            hoverFillColor="rgba(94, 140, 255, 0.2)"
+            borderColor="rgba(125, 162, 255, 0.08)"
+            hoverFillColor="rgba(125, 162, 255, 0.14)"
             shape="square"
             hoverTrailAmount={5}
-            className="opacity-90"
+            className="opacity-60"
           />
-          <div className="absolute inset-0 bg-slate-50/36 dark:bg-[#020617]/36" />
+          <div className="absolute inset-0 bg-[#020617]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_26%_24%,rgba(125,162,255,0.16),transparent_28%),radial-gradient(circle_at_72%_42%,rgba(170,191,255,0.08),transparent_26%),linear-gradient(to_bottom,rgba(2,6,23,0.08),rgba(2,6,23,0.22))]" />
+          <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:28px_28px]" />
         </div>
         <section className="px-6 pb-12 relative z-10 pt-3 md:pt-6">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-12 xl:gap-16 items-start">
-            <div className="text-left">
-              <h2 className="max-w-[12ch] text-4xl sm:text-5xl lg:text-6xl xl:text-[4.2rem] font-black text-slate-900 dark:text-[#F2F5FF] tracking-tight leading-[1.04] mb-6">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-[1.08fr_0.92fr] gap-12 xl:gap-16 items-start">
+            <div className="text-left pt-2 sm:pt-4 xl:pt-10">
+              <h2 className="max-w-[11ch] text-4xl sm:text-5xl lg:text-6xl xl:text-[4.5rem] font-black text-[#F3F6FF] tracking-[-0.04em] leading-[0.96] mb-7 sm:mb-8">
                 Empower <br />
                 Your Learning <br />
                 with{' '}
-                <span className={`${staatliches.className} uppercase tracking-[0.08em] text-blue-600 dark:text-[#8BB8FF] drop-shadow-[0_0_10px_rgba(120,184,255,0.56)]`}>
+                <span className={`${staatliches.className} uppercase tracking-[0.05em] bg-gradient-to-r from-[#8BB8FF] to-[#AABFFF] bg-clip-text text-transparent`}>
                   Collaborative AI.
                 </span>
               </h2>
 
-              <div className="max-w-2xl mb-10">
-                <div className={`${staatliches.className} mb-3 text-sm tracking-[0.16em] text-blue-700 dark:text-[#AABFFF]/80 uppercase`}>
+              <div className="max-w-xl mb-10 sm:mb-11">
+                <div className={`${staatliches.className} mb-3 text-sm tracking-[0.18em] text-[#94A3B8] uppercase`}>
                   Collaborative classrooms
                 </div>
-                <p className="text-xl text-slate-700 dark:text-slate-300/90 leading-relaxed">
-                  Built for collaborative classrooms, instant doubt solving, and smarter learning.
+                <p className="max-w-[28rem] text-lg sm:text-xl text-[#94A3B8] leading-[1.75]">
+                  A live student collaboration system for doubts, notes, and shared progress across campus groups.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                 <SignedIn>
                   <Link href="/rooms" className="w-full sm:w-auto">
-                    <button className="group px-10 py-5 bg-[#5E8CFF] text-white rounded-2xl text-lg font-bold hover:bg-[#8BB8FF] hover:shadow-[0_0_24px_rgba(94,140,255,0.35)] transition-all w-full flex items-center justify-center gap-2">
+                    <button className="group min-w-[15rem] px-8 py-7.5 bg-white text-slate-950 rounded-[1.15rem] text-base font-bold border border-slate-200/80 shadow-[0_10px_24px_rgba(15,23,42,0.08)] hover:bg-slate-100 hover:border-slate-300 transition-all w-full flex items-center justify-center gap-2">
                       <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>Open Classroom</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
@@ -245,11 +242,8 @@ export default function Home() {
                 </SignedIn>
                 <SignedOut>
                   <Link href="/sign-up" className="w-full sm:w-auto">
-                    <button className="group px-10 py-5 bg-white text-slate-950 rounded-2xl text-lg font-bold hover:bg-slate-200 transition-all w-full sm:w-auto flex items-center justify-center gap-2">
-                      <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>
-                        Open
-                      </span>
-                      <span>Classroom</span>
+                    <button className="group min-w-[15rem] px-8 py-4.5 bg-white text-slate-950 rounded-[1.15rem] text-base font-bold border border-slate-200/80 shadow-[0_10px_24px_rgba(15,23,42,0.08)] hover:bg-slate-100 hover:border-slate-300 transition-all w-full sm:w-auto flex items-center justify-center gap-2">
+                      <span className={`${staatliches.className} uppercase tracking-[0.08em]`}>Open Classroom</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </Link>
@@ -257,23 +251,8 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
-              <SignedIn>
-                <Link href="/rooms" className="w-full sm:w-auto">
-                  <button className="group px-10 py-5 bg-blue-600 text-white rounded-2xl text-lg font-bold hover:bg-blue-700 hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all w-full flex items-center justify-center gap-2">
-                    Open Classroom
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </Link>
-              </SignedIn>
-              <SignedOut>
-                <SignUpButton mode="modal" forceRedirectUrl="/rooms">
-                  <button className="group px-10 py-5 bg-white text-slate-950 rounded-2xl text-lg font-bold hover:bg-slate-200 transition-all w-50 flex items-center justify-center gap-2">
-                    Open Classroom
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </SignUpButton>
-              </SignedOut>
+            <div className="flex items-center justify-center xl:justify-end xl:pt-16">
+              <ClassroomPreviewCard />
             </div>
 
           </div>

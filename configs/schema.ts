@@ -18,6 +18,7 @@ export const usersTable = pgTable("users", {
     blockedUntil: timestamp(),
     blockCount: integer().default(0).notNull(),
     emailNotificationsEnabled: boolean().default(true).notNull(),
+    themePreference: varchar({ length: 10 }).default("system").notNull(),
     createdAt: timestamp().defaultNow().notNull(),
 });
 

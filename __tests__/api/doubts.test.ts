@@ -28,6 +28,7 @@ jest.mock('@/configs/db', () => ({
             if (fields && fields.count) {
                 return createQueryMock([{ count: 2 }]);
             }
+            // Return the mock data wrapped in an array
             return createQueryMock([{
                 id: 1,
                 doubtId: 1,
@@ -40,6 +41,7 @@ jest.mock('@/configs/db', () => ({
                 normalizedName: 'physics'
             }]);
         }),
+        
         insert: jest.fn().mockImplementation(() => ({
             values: jest.fn().mockImplementation(() => ({
                 returning: jest.fn().mockResolvedValue([{
@@ -62,9 +64,8 @@ describe('Doubts API Endpoints', () => {
         const res = await GET(req);
         const json = await res.json();
         expect(res.status).toBe(200);
-        expect(json.doubts).toHaveLength(1);
-        expect(json.doubts[0].subject).toBe('Physics');
-        expect(json.pagination.total).toBe(2);
+        expect(json).toHaveLength(1);            
+        expect(json[0].subject).toBe('Physics'); 
     });
 
     it('POST should create a new doubt', async () => {

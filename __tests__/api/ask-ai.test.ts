@@ -57,7 +57,21 @@ jest.mock('groq-sdk', () => {
 });
 
 describe('Ask AI API Endpoint', () => {
+    const originalFetch = global.fetch;
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+    });
+
     it('POST should generate AI solution and extract subject', async () => {
+        global.fetch = jest.fn().mockImplementation(() =>
+            Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({ flagged: false, categories: {} }),
+                text: () => Promise.resolve('{"flagged":false,"categories":{}}')
+            })
+        );
+
         const req = new Request('http://localhost/api/ask-ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -66,8 +80,10 @@ describe('Ask AI API Endpoint', () => {
                 type: 'standard'
             })
         });
+
         const res = await POST(req);
         const json = await res.json();
+        
         expect(res.status).toBe(200);
         expect(json.subject).toBe('Physics');
         expect(json.reply).toContain('Light travels at approximately');

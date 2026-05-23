@@ -79,9 +79,10 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
     }, [isOpen, onClose]);
 
     const fetchReplies = async () => {
-        const storedUserName = localStorage.getItem("anonymous_user") || "";
+        const storedUserName = localStorage.getItem("anonymous_user");
         try {
-            const res = await fetch(`/api/replies?doubtId=${doubt.id}&userName=${storedUserName}`);
+            const url = `/api/replies?doubtId=${doubt.id}` + (storedUserName ? `&userName=${encodeURIComponent(storedUserName)}` : "");
+            const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
                 setReplies(data);
@@ -237,15 +238,17 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
     };
 
     const handleVote = async (replyId: number) => {
-        const storedUserName = localStorage.getItem("anonymous_user");
-        if (!storedUserName) return;
-
         try {
             const res = await fetch("/api/replies/vote", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ replyId, userName: storedUserName })
+                body: JSON.stringify({ replyId })
             });
+
+            if (res.status === 401) {
+                toast.error("Sign in to vote.", { id: `vote-auth-required-${replyId}` });
+                return;
+            }
 
             if (res.ok) {
                 const updatedReply = await res.json();
@@ -254,9 +257,13 @@ export default function DoubtRepliesModal({ doubt, isOpen, onClose, onReplyChang
                     upvotes: updatedReply.upvotes,
                     hasUpvoted: updatedReply.hasUpvoted
                 } : r));
+            } else {
+                const data = await res.json().catch(() => ({}));
+                toast.error(data.error || "Failed to vote.", { id: `vote-error-${replyId}` });
             }
         } catch (error) {
             console.error("Failed to vote:", error);
+            toast.error("Network error while voting.", { id: `vote-network-error-${replyId}` });
         }
     };
 

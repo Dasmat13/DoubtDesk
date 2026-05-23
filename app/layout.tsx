@@ -14,18 +14,43 @@ const AppFont = DM_Sans({
   subsets: ['latin'],
   variable: '--font-app',
 })
+
+const DEFAULT_SITE_URL = "https://doubt-desk-seven.vercel.app";
+
+function getSiteUrl() {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.VERCEL_URL ||
+    DEFAULT_SITE_URL;
+
+  return siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`;
+}
+
+const siteUrl = getSiteUrl();
+
+export const viewport = {
+  themeColor: "#0f172a",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || 
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  ),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "DoubtDesk | AI Doubt Solver",
     template: "%s | DoubtDesk",
   },
   description:
     "DoubtDesk enables students to solve engineering doubts instantly with AI, join interactive classrooms, and view clear learning analytics.",
-
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "DoubtDesk",
+  },
   keywords: [
     "DoubtDesk",
     "AI doubt solver",
@@ -48,11 +73,11 @@ export const metadata: Metadata = {
     title: "DoubtDesk | AI Doubt Solver",
     description:
       "DoubtDesk enables students to solve engineering doubts instantly with AI, join interactive classrooms, and view clear learning analytics.",
-    url: "/",
+    url: siteUrl,
     siteName: "DoubtDesk",
     images: [
       {
-        url: "/og-image.png",
+        url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "DoubtDesk - AI classroom doubt-solving platform",
@@ -66,7 +91,7 @@ export const metadata: Metadata = {
     title: "DoubtDesk | AI Doubt Solver",
     description:
       "DoubtDesk enables students to solve engineering doubts instantly with AI, join interactive classrooms, and view clear learning analytics.",
-    images: ["/og-image.png"],
+    images: [`${siteUrl}/og-image.png`],
   },
   robots: {
     index: true,
