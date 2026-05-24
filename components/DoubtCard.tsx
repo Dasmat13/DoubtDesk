@@ -25,6 +25,7 @@ export default function DoubtCard({ doubt, onUpdate, onViewAISolution, role }: D
     const [isDeleting, setIsDeleting] = useState(false);
     const [isPinning, setIsPinning] = useState(false);
     const [isBookmarking, setIsBookmarking] = useState(false);
+    const [likes, setLikes] = useState<number>(doubt.likes || 0);
 
     const isTeacher = role === 'teacher';
 
@@ -36,7 +37,10 @@ export default function DoubtCard({ doubt, onUpdate, onViewAISolution, role }: D
     }, [doubt.userName]);
 
     const handleAction = async (action: string) => {
-        if (action === "like") setIsLiking(true);
+        if (action === "like") {
+            setIsLiking(true);
+            setLikes(prev => prev + 1);
+        }
         if (action === "solve") setIsSolving(true);
 
         const userName = localStorage.getItem("anonymous_user");
@@ -60,6 +64,8 @@ export default function DoubtCard({ doubt, onUpdate, onViewAISolution, role }: D
                 toast.error(data.error || `Failed to ${action} doubt.`);
             }
         } catch (error) {
+            if(action === 'like') setLikes(prev => prev -1);
+
             console.error(`Action ${action} failed:`, error);
             toast.error(`Failed to ${action} doubt.`);
         } finally {
@@ -239,7 +245,7 @@ export default function DoubtCard({ doubt, onUpdate, onViewAISolution, role }: D
                             className={`flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl transition-all group/btn ${ doubt.hasLiked ? "bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10" : "bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5" }`}
                         >
                             <ThumbsUp className={`w-4 h-4 ${isLiking ? 'animate-pulse' : 'group-hover/btn:scale-110 transition-transform'} ${doubt.hasLiked ? 'fill-blue-400' : ''}`} />
-                            <span className="text-xs font-black">{doubt.likes || 0}</span>
+                            <span className="text-xs font-black">{likes}</span>
                         </button>
 
                         <button
