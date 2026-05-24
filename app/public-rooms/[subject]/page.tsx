@@ -5,19 +5,49 @@ import { useEffect, useState } from "react";
 import { Zap, MessageSquare, Plus, Loader2 } from "lucide-react";
 import AskDoubt from "@/components/AskDoubt";
 import DoubtCard from "@/components/DoubtCard";
+import DoubtSortSelect, { DoubtSortValue } from "@/components/DoubtSortSelect";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import useSWRInfinite from "swr/infinite";
 import { useInView } from "react-intersection-observer";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 export default function PublicRoomPage() {
     const params = useParams();
+    const pathname = usePathname();
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const subject = params.subject as string;
     const [isAskModalOpen, setIsAskModalOpen] = useState(false);
 
+    const sort = (searchParams.get("sort") as DoubtSortValue) || "newest";
+
     const fetcher = (url: string) => fetch(url).then(res => res.json());
+    const updateSort = (nextSort: DoubtSortValue) => {
+        const nextParams = new URLSearchParams(searchParams.toString());
+        if (nextSort === "newest") {
+            nextParams.delete("sort");
+        } else {
+            nextParams.set("sort", nextSort);
+        }
+
+        const query = nextParams.toString();
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+        setSize(1);
+    };
+
     const getKey = (pageIndex: number, previousPageData: any[]) => {
         if (previousPageData && !previousPageData.length) return null;
-        return `/api/doubts?subject=${subject}&page=${pageIndex + 1}&limit=20`;
+        const params = new URLSearchParams({
+            subject,
+            page: String(pageIndex + 1),
+            limit: "20",
+        });
+
+        if (sort !== "newest") {
+            params.append("sort", sort);
+        }
+
+        return `/api/doubts?${params.toString()}`;
     };
 
     const { data, isLoading, size, setSize, mutate } = useSWRInfinite(getKey, fetcher, {
@@ -56,6 +86,10 @@ export default function PublicRoomPage() {
                     Ask a Doubt
                 </button>
             </header>
+
+            <div className="flex justify-end">
+                <DoubtSortSelect value={sort} onValueChange={updateSort} />
+            </div>
 
             {isLoading && doubts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 space-y-4">

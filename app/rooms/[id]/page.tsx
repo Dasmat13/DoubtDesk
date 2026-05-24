@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useAppUser } from "../../provider";
 import {
@@ -37,6 +37,7 @@ import DoubtCard from "@/components/DoubtCard";
 import Dashboard from "@/app/dashboard/page"; // We can reuse or adapt the Analytics view
 import AskAIView from "../../../components/AskAIView";
 import ExportButton from "@/components/ExportButton";
+import DoubtSortSelect, { DoubtSortValue } from "@/components/DoubtSortSelect";
 import { toast } from "sonner";
 import useSWRInfinite from "swr/infinite";
 import { useInView } from "react-intersection-observer";
@@ -54,6 +55,8 @@ interface Classroom {
 export default function ClassroomPage() {
     const { id } = useParams();
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { appUser } = useAppUser();
 
     const [classroom, setClassroom] = useState<Classroom | null>(null);
@@ -68,6 +71,7 @@ export default function ClassroomPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [subjectFilter, setSubjectFilter] = useState("All");
     const [tagFilter, setTagFilter] = useState("");
+    const sort = (searchParams.get("sort") as DoubtSortValue) || "newest";
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -80,6 +84,19 @@ export default function ClassroomPage() {
     const userName = typeof window !== 'undefined' ? localStorage.getItem("anonymous_user") : "";
 
     const fetcher = (url: string) => fetch(url).then(res => res.json());
+    const updateSort = (nextSort: DoubtSortValue) => {
+        const nextParams = new URLSearchParams(searchParams.toString());
+        if (nextSort === "newest") {
+            nextParams.delete("sort");
+        } else {
+            nextParams.set("sort", nextSort);
+        }
+
+        const query = nextParams.toString();
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+        setSize(1);
+    };
+
     const getKey = (pageIndex: number, previousPageData: any[]) => {
         if (previousPageData && !previousPageData.length) return null; // reached the end
         if (activeTab === 'insights') return null;
@@ -93,6 +110,7 @@ export default function ClassroomPage() {
         if (tagFilter.trim()) params.append("tag", tagFilter.trim());
         if (searchQuery) params.append("search", searchQuery);
         if (subjectFilter !== "All") params.append("subject", subjectFilter);
+        if (sort !== "newest") params.append("sort", sort);
         return `/api/doubts?${params.toString()}`;
     };
 
@@ -252,6 +270,12 @@ export default function ClassroomPage() {
             </div>
 
             {/* Content Area */}
+            <div className="max-w-7xl mx-auto px-4 md:px-12 pb-2 flex justify-end">
+                {activeTab !== "ask-ai" && activeTab !== "insights" && (
+                    <DoubtSortSelect value={sort} onValueChange={updateSort} />
+                )}
+            </div>
+
             <div className="max-w-7xl mx-auto p-4 md:py-8 md:px-12">
                 {activeTab === "ask-ai" && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-10">

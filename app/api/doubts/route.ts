@@ -1,7 +1,7 @@
 import { db } from "@/configs/db";
 import { bookmarksTable, doubtTagsTable, doubtsTable, likesTable, repliesTable, membershipsTable, classroomsTable, tagsTable, usersTable } from "@/configs/schema";
 import { categorizeDoubt } from "@/lib/ai/categorizer";
-import { and, eq, desc, inArray, isNull, or, not, sql, ilike } from "drizzle-orm";
+import { and, eq, inArray, isNull, or, not, sql, ilike } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { moderateContent, handleModerationViolation } from "@/lib/moderation";
@@ -16,6 +16,7 @@ export async function GET(req: Request) {
     const classroomId = classroomIdStr ? parseInt(classroomIdStr) : null;
     const type = searchParams.get("type") || 'community';
     const tag = searchParams.get("tag");
+    const sort = searchParams.get("sort") || "newest";
 
     try {
         const user = await currentUser();
@@ -93,12 +94,13 @@ export async function GET(req: Request) {
         }
 
         const pageStr = searchParams.get("page");
+        const offsetStr = searchParams.get("offset");
         const limitStr = searchParams.get("limit");
         const page = pageStr ? parseInt(pageStr) : 1;
         const limit = limitStr ? parseInt(limitStr) : 20;
-        const offset = (page - 1) * limit;
+        const offset = offsetStr ? parseInt(offsetStr) : (page - 1) * limit;
 
-        let doubts = await query.where(and(...conditions)).orderBy(desc(doubtsTable.createdAt)).limit(limit).offset(offset);
+        let doubts = await query.where(and(...conditions));
 
         if (tag && tag !== "All" && doubts.length > 0) {
             const normalizedTag = tag.trim().replace(/\s+/g, " ").toLowerCase();
@@ -114,6 +116,46 @@ export async function GET(req: Request) {
             const taggedDoubtIds = new Set(taggedDoubts.map((row) => row.doubtId));
             doubts = doubts.filter((doubt) => taggedDoubtIds.has(doubt.id));
         }
+
+        if (sort === "unsolved") {
+            doubts = doubts.filter((doubt) => doubt.isSolved === "unsolved");
+        }
+
+        const replyCounts = doubts.length > 0
+            ? await db.select({
+                doubtId: repliesTable.doubtId,
+                count: sql<number>`count(*)`.mapWith(Number)
+            })
+            .from(repliesTable)
+            .groupBy(repliesTable.doubtId)
+            : [];
+
+        const countsMap = Object.fromEntries(replyCounts.map(r => [r.doubtId, r.count]));
+
+        doubts = doubts.map(doubt => ({
+            ...doubt,
+            replyCount: countsMap[doubt.id] || 0
+        }));
+
+        const createdAtValue = (value: any) => new Date(value).getTime() || 0;
+        const pinnedScore = (value: any) => (value ? 1 : 0);
+
+        doubts = doubts.sort((a, b) => {
+            const pinnedDiff = pinnedScore(b.isPinned) - pinnedScore(a.isPinned);
+            if (pinnedDiff !== 0) return pinnedDiff;
+
+            if (sort === "popular") {
+                const likesDiff = (b.likes ?? 0) - (a.likes ?? 0);
+                if (likesDiff !== 0) return likesDiff;
+            } else if (sort === "most-replied") {
+                const repliesDiff = (b.replyCount ?? 0) - (a.replyCount ?? 0);
+                if (repliesDiff !== 0) return repliesDiff;
+            }
+
+            return createdAtValue(b.createdAt) - createdAtValue(a.createdAt);
+        });
+
+        doubts = doubts.slice(offset, offset + limit);
 
         if (userName && doubts.length > 0) {
             const userLikes = await db.select({ doubtId: likesTable.doubtId })
@@ -140,21 +182,6 @@ export async function GET(req: Request) {
                 hasBookmarked: bookmarkedIds.has(doubt.id)
             }));
         }
-
-        // Fetch reply counts using an aggregate query
-        const replyCounts = await db.select({
-            doubtId: repliesTable.doubtId,
-            count: sql<number>`count(*)`.mapWith(Number)
-        })
-        .from(repliesTable)
-        .groupBy(repliesTable.doubtId);
-
-        const countsMap = Object.fromEntries(replyCounts.map(r => [r.doubtId, r.count]));
-
-        doubts = doubts.map(doubt => ({
-            ...doubt,
-            replyCount: countsMap[doubt.id] || 0
-        }));
 
         if (doubts.length > 0) {
             const tagRows = await db.select({
