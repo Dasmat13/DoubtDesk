@@ -19,20 +19,22 @@ export default function RecommendedClassrooms() {
     const [classrooms, setClassrooms] = useState<Classroom[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchRecommendations = async () => {
+        setError(null);
         try {
             const res = await fetch("/api/recommendations");
+            const data = await res.json();
 
             if (!res.ok) {
-                throw new Error("Failed to fetch recommendations");
+                throw new Error(data?.error || "Failed to load recommendations");
             }
-
-            const data = await res.json();
 
             setClassrooms(data.recommendations || []);
         } catch (error) {
             console.error(error);
+            setError(error instanceof Error ? error.message : "Failed to load recommendations");
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -53,6 +55,27 @@ export default function RecommendedClassrooms() {
             <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading recommendations...
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                <p className="font-medium">Unable to load recommendations.</p>
+                <p className="mt-1 text-red-600">{error}</p>
+                <button
+                    onClick={refreshRecommendations}
+                    disabled={refreshing}
+                    className="mt-3 flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+                >
+                    <RefreshCw
+                        className={`h-4 w-4 ${
+                            refreshing ? "animate-spin" : ""
+                        }`}
+                    />
+                    Try again
+                </button>
             </div>
         );
     }

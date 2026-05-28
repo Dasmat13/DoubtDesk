@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bookmark, Loader2, ArrowLeft } from "lucide-react";
+import { Bookmark, Loader2, ArrowLeft, RefreshCw } from "lucide-react";
 import DoubtCard from "@/components/DoubtCard";
 import { useRouter } from "next/navigation";
 import { useAppUser } from "@/app/provider";
@@ -10,19 +10,25 @@ import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 export default function BookmarksPage() {
   const [bookmarks, setBookmarks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { appUser } = useAppUser();
 
   const fetchBookmarks = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/bookmarks");
       const data = await res.json();
-      if (res.ok) {
-        setBookmarks(data);
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to load bookmarks");
       }
+
+      setBookmarks(data);
     } catch (error) {
       console.error("Failed to fetch bookmarks:", error);
+      setError(error instanceof Error ? error.message : "Failed to load bookmarks");
     } finally {
       setLoading(false);
     }
@@ -68,6 +74,23 @@ export default function BookmarksPage() {
               <div className="flex flex-col items-center justify-center py-24 space-y-4">
                 <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
                 <p className="text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider text-xs">Loading your saved doubts...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-red-50/50 dark:bg-red-950/10 border border-dashed border-red-200 dark:border-red-900 rounded-2xl text-center px-6 shadow-sm">
+                <div className="w-16 h-16 bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900 rounded-xl flex items-center justify-center mb-6 shadow-sm">
+                  <Bookmark className="w-7 h-7 text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">Unable to Load Bookmarks</h3>
+                <p className="text-slate-500 dark:text-zinc-400 max-w-sm mx-auto font-medium text-xs leading-relaxed mb-6">
+                  {error}
+                </p>
+                <button
+                  onClick={fetchBookmarks}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold uppercase tracking-wider text-xs transition-all duration-300 shadow-lg shadow-red-600/10 active:scale-[0.98]"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Try Again
+                </button>
               </div>
             ) : bookmarks.length > 0 ? (
               <div className="flex flex-col gap-6 lg:gap-8">
