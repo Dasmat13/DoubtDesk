@@ -29,11 +29,17 @@ const { GET, POST } = require('@/app/api/notifications/test-seed/route');
 const { mockInsert, mockValues } = require('@/configs/db')._mocks;
 
 describe('Notification test seed API endpoint', () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+
     beforeEach(() => {
         currentUserMock.mockReset();
         mockValues.mockReset();
         mockInsert.mockClear();
         mockValues.mockResolvedValue({});
+    });
+
+    afterEach(() => {
+        process.env.NODE_ENV = originalNodeEnv;
     });
 
     it('does not seed notifications from GET requests', async () => {
@@ -45,6 +51,32 @@ describe('Notification test seed API endpoint', () => {
         expect(json.error).toBe('Method Not Allowed');
         expect(currentUserMock).not.toHaveBeenCalled();
         expect(mockInsert).not.toHaveBeenCalled();
+    });
+
+    it('hides the seed route from GET requests in production', async () => {
+        process.env.NODE_ENV = 'production';
+
+        const res = await GET();
+        const json = await res.json();
+
+        expect(res.status).toBe(404);
+        expect(json).toEqual({ error: 'Not found' });
+        expect(currentUserMock).not.toHaveBeenCalled();
+        expect(mockInsert).not.toHaveBeenCalled();
+        expect(mockValues).not.toHaveBeenCalled();
+    });
+
+    it('hides the seed route from POST requests in production', async () => {
+        process.env.NODE_ENV = 'production';
+
+        const res = await POST();
+        const json = await res.json();
+
+        expect(res.status).toBe(404);
+        expect(json).toEqual({ error: 'Not found' });
+        expect(currentUserMock).not.toHaveBeenCalled();
+        expect(mockInsert).not.toHaveBeenCalled();
+        expect(mockValues).not.toHaveBeenCalled();
     });
 
     it('seeds notifications for the signed-in user only through POST', async () => {
@@ -73,14 +105,16 @@ describe('Notification test seed API endpoint', () => {
 
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-        const res = await POST();
-        const json = await res.json();
+        try {
+            const res = await POST();
+            const json = await res.json();
 
-        expect(res.status).toBe(500);
-        expect(json).toEqual({ error: 'Failed to seed notifications' });
-        expect(json.details).toBeUndefined();
-        expect(json.stack).toBeUndefined();
-
-        consoleErrorSpy.mockRestore();
+            expect(res.status).toBe(500);
+            expect(json).toEqual({ error: 'Failed to seed notifications' });
+            expect(json.details).toBeUndefined();
+            expect(json.stack).toBeUndefined();
+        } finally {
+            consoleErrorSpy.mockRestore();
+        }
     });
 });
