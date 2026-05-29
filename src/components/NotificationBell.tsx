@@ -21,6 +21,10 @@ interface Notification extends NotificationRecord {
     createdAt: string;
 }
 
+const NOTIFICATIONS_KEY = '/api/notifications'
+const NOTIFICATION_LOAD_ERROR_MESSAGE = "Could not load notifications."
+const NOTIFICATION_RETRY_BUTTON_LABEL = "Try again"
+
 const fetcher = async (url: string) => {
     const res = await fetch(url)
 
@@ -39,11 +43,12 @@ export default function NotificationBell() {
     const shouldFetchNotifications = isLoaded && isSignedIn && !isPollingPaused
 
     const { data, error, mutate } = useSWR(
-        shouldFetchNotifications ? '/api/notifications' : null,
+        NOTIFICATIONS_KEY,
         fetcher,
         {
             refreshInterval: 30000,
             shouldRetryOnError: false,
+            isPaused: () => !shouldFetchNotifications,
             onError: () => setIsPollingPaused(true),
         }
     )
@@ -78,16 +83,6 @@ export default function NotificationBell() {
                     return currentData
                 }
 
-                toast(payload.title, {
-                    description: payload.message,
-                    action: payload.link
-                        ? {
-                            label: "View",
-                            onClick: () => router.push(payload.link as string),
-                        }
-                        : undefined,
-                })
-
                 return {
                     ...currentData,
                     unreadCount: (currentData.unreadCount || 0) + 1,
@@ -107,6 +102,7 @@ export default function NotificationBell() {
 
     const retryFetch = () => {
         setIsPollingPaused(false)
+        void mutate()
     }
 
     const updateNotification = async (body: Record<string, unknown>) => {
@@ -213,13 +209,13 @@ export default function NotificationBell() {
                         </div>
                     ) : isLoadError ? (
                         <div className="flex flex-col items-center justify-center h-32 text-center px-4 gap-3">
-                            <p className="text-sm text-muted-foreground">Could not load notifications.</p>
+                            <p className="text-sm text-muted-foreground">{NOTIFICATION_LOAD_ERROR_MESSAGE}</p>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={retryFetch}
                             >
-                                Try again
+                                {NOTIFICATION_RETRY_BUTTON_LABEL}
                             </Button>
                         </div>
                     ) : notifications.length === 0 ? (
