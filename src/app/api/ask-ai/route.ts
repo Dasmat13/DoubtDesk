@@ -254,9 +254,30 @@ export async function POST(req: Request) {
             history = [],
         } = await req.json();
 
-        const conversationHistory = Array.isArray(history)
-            ? history
-            : [];
+        // Validate and sanitize history entries before injecting them into the
+        // LLM context. Accepting arbitrary objects would let an attacker inject
+        // system-role messages that override the application system prompt or
+        // bypass the moderation check applied only to the current prompt field.
+        const ALLOWED_ROLES = new Set(['user', 'assistant']);
+        const MAX_HISTORY_ENTRIES = 20;
+        const MAX_CONTENT_LENGTH = 4000;
+
+        const conversationHistory: { role: 'user' | 'assistant'; content: string }[] = [];
+        if (Array.isArray(history)) {
+            for (const entry of history.slice(-MAX_HISTORY_ENTRIES)) {
+                if (
+                    entry &&
+                    typeof entry === 'object' &&
+                    ALLOWED_ROLES.has(entry.role) &&
+                    typeof entry.content === 'string'
+                ) {
+                    conversationHistory.push({
+                        role: entry.role as 'user' | 'assistant',
+                        content: entry.content.slice(0, MAX_CONTENT_LENGTH),
+                    });
+                }
+            }
+        }
 
         // 1. AI Moderation Check for Prompts
         if (prompt) {
