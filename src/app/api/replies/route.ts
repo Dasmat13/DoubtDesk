@@ -4,7 +4,7 @@ import { eq, asc, sql, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { moderateContent, handleModerationViolation } from "@/lib/moderation";
-import { buildErrorResponse, errorResponse, successResponse } from "@/lib/error-handler";
+import { buildErrorResponse, errorResponse } from "@/lib/error-handler";
 import { inngest } from "@/inngest/client";
 import { parseAndValidateRequest } from "@/lib/validations/validate";
 import { createReplySchema } from "@/lib/validations/reply";
@@ -78,7 +78,7 @@ export async function GET(req: Request) {
             }));
         }
 
-        return successResponse(repliesWithVotes);
+        return NextResponse.json(repliesWithVotes);
     } catch (error) {
         const { status, body } = buildErrorResponse(error);
         return NextResponse.json(body, { status });
@@ -87,8 +87,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const { errorResponse, data } = await parseAndValidateRequest(req, createReplySchema);
-        if (errorResponse) return errorResponse;
+        const { errorResponse: validationResponse, data } = await parseAndValidateRequest(req, createReplySchema);
+        if (validationResponse) return validationResponse;
 
         const { doubtId, userName, type, content, imageUrl } = data;
 
@@ -251,7 +251,7 @@ export async function POST(req: Request) {
             }
         }
 
-        return successResponse(newReply[0]);
+        return NextResponse.json(newReply[0]);
     } catch (error) {
         const { status, body } = buildErrorResponse(error);
         return NextResponse.json(body, { status });

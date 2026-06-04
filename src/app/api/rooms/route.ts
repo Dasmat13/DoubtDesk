@@ -4,7 +4,7 @@ import { classroomsTable, membershipsTable, usersTable } from '@/configs/schema'
 import { eq, and, notInArray } from 'drizzle-orm';
 import { currentUser } from '@clerk/nextjs/server';
 import { checkUserBlock } from '@/lib/auth-utils';
-import { buildErrorResponse, errorResponse, successResponse } from '@/lib/error-handler';
+import { buildErrorResponse, errorResponse } from '@/lib/error-handler';
 import { parseAndValidateRequest } from '@/lib/validations/validate';
 import { createClassroomSchema } from '@/lib/validations/classroom';
 import { Classroom } from '@/types';
@@ -64,7 +64,7 @@ if (dbUser && dbUser.university && dbUser.year) {
         .where(and(...conditions));
 }
 
-        return successResponse({
+        return NextResponse.json({
             joined: joinedRooms,
             recommended: recommendedRooms,
         });
@@ -77,8 +77,8 @@ if (dbUser && dbUser.university && dbUser.year) {
 // 2. POST: Create a classroom (Teacher Only)
 export async function POST(req: Request) {
     try {
-        const { errorResponse, data } = await parseAndValidateRequest(req, createClassroomSchema);
-        if (errorResponse) return errorResponse;
+        const { errorResponse: validationResponse, data } = await parseAndValidateRequest(req, createClassroomSchema);
+        if (validationResponse) return validationResponse;
 
         const { name, year } = data;
 
@@ -123,7 +123,7 @@ export async function POST(req: Request) {
             return room;
         });
 
-        return successResponse(newRoom);
+        return NextResponse.json(newRoom);
     } catch (error) {
         const { status, body } = buildErrorResponse(error);
         return NextResponse.json(body, { status });

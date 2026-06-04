@@ -5,7 +5,7 @@ import { doubtsTable, bookmarksTable, likesTable, repliesTable } from "@/configs
 import { and, eq, desc, sql, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import { buildErrorResponse, errorResponse, successResponse } from "@/lib/error-handler";
+import { buildErrorResponse, errorResponse } from "@/lib/error-handler";
 
 export async function GET(req: Request) {
     try {
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
             .where(eq(bookmarksTable.userEmail, email));
 
         if (bookmarks.length === 0) {
-            return successResponse([]);
+            return NextResponse.json([]);
         }
 
         const doubtIds = bookmarks.map(b => b.doubtId);
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
             replyCount: countsMap[doubt.id] || 0
         }));
 
-        return successResponse(doubts);
+        return NextResponse.json(doubts);
     } catch (error) {
         console.error("Error fetching bookmarks:", error);
         const { status, body } = buildErrorResponse(error);

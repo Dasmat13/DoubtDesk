@@ -5,7 +5,7 @@ import { doubtsTable, repliesTable, usersTable, classroomsTable } from '@/config
 import { eq } from 'drizzle-orm';
 import { moderateContent, handleModerationViolation } from '@/lib/moderation';
 import { checkPedagogicalDrift } from '@/lib/pedagogy';
-import { buildErrorResponse, errorResponse, successResponse } from '@/lib/error-handler';
+import { buildErrorResponse, errorResponse } from '@/lib/error-handler';
 import {
     parseClassroomId,
     requireAuth,
@@ -703,7 +703,7 @@ ${prompt ? `Additional context from student: ${prompt}` : ''}`;
             }
         }
 
-        return successResponse({
+        return NextResponse.json({
             reply,
             subject,
             model: modelUsed,
