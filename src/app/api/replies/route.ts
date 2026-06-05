@@ -51,7 +51,7 @@ export async function GET(req: Request) {
                 return errorResponse("Access denied to this classroom's doubt replies", 403);
             }
         } else if (doubt.classroomId && !email) {
-            console.warn(`Anonymous user attempting to access replies for doubt ${doubtId} in classroom ${doubt.classroomId}`);
+            return errorResponse("Access denied to this classroom's doubt replies", 403);
         }
 
         if (doubt.type === 'teacher') {
