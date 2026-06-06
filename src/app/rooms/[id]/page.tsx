@@ -90,6 +90,10 @@ export default function ClassroomPage() {
     "unsolved" | "in-progress" | "solved"
   >("unsolved");
   const [searchVal, setSearchVal] = useState(searchParams.get("search") || "");
+  useEffect(() => {
+    const urlSearch = searchParams.get("search");
+    if (urlSearch) setSearchVal(urlSearch);
+  }, [searchParams]);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [pedagogyLevel, setPedagogyLevel] = useState("");
   const [targetGrade, setTargetGrade] = useState("");
