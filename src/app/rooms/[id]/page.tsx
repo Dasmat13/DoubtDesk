@@ -260,7 +260,11 @@ export default function ClassroomPage() {
     if (classroom?.id) {
       fetch(`/api/classroom/pedagogy?classroomId=${classroom.id}`)
         .then((r) => r.json())
-        .then(setPedagogyProfile);
+        .then(setPedagogyProfile)
+        .catch((err) => {
+          console.error(err);
+          toast.error("Failed to load pedagogy profile");
+        });
     }
   }, [classroom?.id]);
 
@@ -1137,6 +1141,7 @@ function ClassroomInsightsView({
       setData(await res.json());
     } catch (error) {
       console.error("Error loading classroom analytics:", error);
+      toast.error("Failed to load analytics data");
       setData(null);
     } finally {
       setLoading(false);
@@ -1578,6 +1583,10 @@ function PersonalMentorView({ classroomId }: { classroomId: number }) {
       .then((res) => res.json())
       .then((d) => {
         setPersonalData(d);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load personal analytics:", err);
         setLoading(false);
       });
   }, [classroomId]);
