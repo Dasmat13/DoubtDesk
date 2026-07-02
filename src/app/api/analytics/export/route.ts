@@ -123,7 +123,7 @@ export async function GET(req: Request) {
       // 5. Student Engagement
       db
         .select({
-          totalStudents: countDistinct(doubtsTable.userName),
+          totalStudents: countDistinct(doubtsTable.userEmail),
           totalDoubts: count(doubtsTable.id),
         })
         .from(doubtsTable)
