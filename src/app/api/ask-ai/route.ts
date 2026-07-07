@@ -3,7 +3,7 @@ import Groq from "groq-sdk";
 import { and, eq } from "drizzle-orm";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { db } from "@/configs/db";
-import { membershipsTable, usersTable } from "@/configs/schema";
+import { membershipsTable, usersTable, aiSessionsTable } from "@/configs/schema";
 import { enforceApiRateLimit } from "@/lib/api-rate-limit";
 import { aiLimiter } from "@/lib/ratelimit";
 import { AI_REQUEST_MAX_BYTES } from "@/lib/ai-image-validation";
@@ -173,24 +173,20 @@ export async function POST(req: Request): Promise<NextResponse> {
   const subject = subjectMatch?.[1]?.trim() ?? null;
   const reply = rawReply.replace(/^SUBJECT:.*$/m, "").trim();
 
-  const insertResult = await db
-    .insert("aiSessions" as any)
+  const [inserted] = await db
+    .insert(aiSessionsTable)
     .values({
       userName: user.fullName ?? "Unknown",
       subject: subject ?? body.type ?? "General",
       content: prompt.slice(0, 80),
-    } as any)
+    })
     .returning();
-
-  const inserted = Array.isArray(insertResult)
-    ? insertResult[0]
-    : (insertResult as any)?.rows?.[0];
 
   if (inserted?.id) {
     await db
-      .update("aiSessions" as any)
-      .set({ reply } as any)
-      .where(`id = ${inserted.id}` as any);
+      .update(aiSessionsTable)
+      .set({ reply })
+      .where(eq(aiSessionsTable.id, inserted.id));
   }
 
   console.log(

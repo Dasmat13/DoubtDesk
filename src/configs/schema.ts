@@ -510,6 +510,19 @@ export const confusionAlertsTable = pgTable("confusion_alerts", {
 }));
 
 // ═══════════════════════════════════════════════════════════════════
+//   AI SESSIONS TABLE
+// ═══════════════════════════════════════════════════════════════════
+
+export const aiSessionsTable = pgTable("aiSessions", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userName: varchar({ length: 255 }).notNull(),
+    subject: varchar({ length: 255 }).notNull(),
+    content: text().notNull(),
+    reply: text(),
+    createdAt: timestamp().defaultNow().notNull(),
+});
+
+// ═══════════════════════════════════════════════════════════════════
 //   AI PRACTICE SYSTEM TABLE
 // ═══════════════════════════════════════════════════════════════════
 
