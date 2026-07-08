@@ -89,8 +89,21 @@ export async function checkUserBlock(email: string) {
             };
         }
 
-        // Fallback for extreme database contention
+        // Fallback for extreme database contention.
+        // Re-run the same active-block check so callers always receive a consistent
+        // errorResponse whenever the user is still within a block window.
         const [finalUser] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+        if (finalUser?.isBlocked && finalUser.blockedUntil && new Date(finalUser.blockedUntil) > new Date()) {
+            const unlockDate = new Date(finalUser.blockedUntil).toDateString();
+            const { status, body } = buildErrorResponse(
+                new Error(`Your account is temporarily blocked due to safety violations. Access will be restored on ${unlockDate}.`)
+            );
+            return {
+                isBlocked: true,
+                errorResponse: NextResponse.json(body, { status }),
+                dbUser: finalUser,
+            };
+        }
         return {
             isBlocked: finalUser?.isBlocked ?? false,
             errorResponse: undefined,

@@ -1,4 +1,4 @@
-import { checkUserBlock } from "@/lib/auth-utils";
+import { checkUserBlock } from "@/lib/auth/auth-utils";
 
 jest.mock("@/configs/db", () => {
     const mockReturning = jest.fn();
@@ -127,5 +127,33 @@ describe("checkUserBlock", () => {
 
         expect(mockSelectWhere).toHaveBeenCalledTimes(2);
         expect(mockUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it("fallback after 3 retries should return errorResponse when user is still actively blocked", async () => {
+        const pastDate = new Date();
+        pastDate.setDate(pastDate.getDate() - 1);
+        const expiredUser = { email: "test@example.com", isBlocked: true, blockedUntil: pastDate };
+
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 3);
+        const activelyBlockedUser = { email: "test@example.com", isBlocked: true, blockedUntil: futureDate };
+
+        // All 3 attempts: select expired user, update returns [] (race every time)
+        mockSelectWhere.mockResolvedValueOnce([expiredUser]);
+        mockReturning.mockResolvedValueOnce([]);
+        mockSelectWhere.mockResolvedValueOnce([expiredUser]);
+        mockReturning.mockResolvedValueOnce([]);
+        mockSelectWhere.mockResolvedValueOnce([expiredUser]);
+        mockReturning.mockResolvedValueOnce([]);
+
+        // Fallback read: user is now actively blocked again
+        mockSelectWhere.mockResolvedValueOnce([activelyBlockedUser]);
+
+        const result = await checkUserBlock("test@example.com");
+
+        // Fallback must NOT silently return errorResponse: undefined for a blocked user
+        expect(result.isBlocked).toBe(true);
+        expect(result.errorResponse).toBeDefined();
+        expect(result.dbUser).toEqual(activelyBlockedUser);
     });
 });
