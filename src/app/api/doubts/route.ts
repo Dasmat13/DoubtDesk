@@ -216,11 +216,23 @@ export async function GET(req: Request) {
       }));
     }
 
+    // Only fetch the current user's likes/bookmarks for this page's doubts,
+    // not every like/bookmark they have ever made across the entire app.
+    const pageDoubtIds = doubts.map((d: any) => d.id);
+
     if (email && doubts.length > 0) {
-      const userLikes = await db
-        .select({ doubtId: likesTable.doubtId })
-        .from(likesTable)
-        .where(eq(likesTable.userEmail, email));
+      const userLikes =
+        pageDoubtIds.length > 0
+          ? await db
+              .select({ doubtId: likesTable.doubtId })
+              .from(likesTable)
+              .where(
+                and(
+                  eq(likesTable.userEmail, email),
+                  inArray(likesTable.doubtId, pageDoubtIds),
+                ),
+              )
+          : [];
 
       const likedIds = new Set(userLikes.map((l: any) => l.doubtId));
       doubts = doubts.map((doubt: any) => ({
@@ -230,10 +242,18 @@ export async function GET(req: Request) {
     }
 
     if (doubts.length > 0 && email) {
-      const userBookmarks = await db
-        .select({ doubtId: bookmarksTable.doubtId })
-        .from(bookmarksTable)
-        .where(eq(bookmarksTable.userEmail, email));
+      const userBookmarks =
+        pageDoubtIds.length > 0
+          ? await db
+              .select({ doubtId: bookmarksTable.doubtId })
+              .from(bookmarksTable)
+              .where(
+                and(
+                  eq(bookmarksTable.userEmail, email),
+                  inArray(bookmarksTable.doubtId, pageDoubtIds),
+                ),
+              )
+          : [];
 
       const bookmarkedIds = new Set(userBookmarks.map((b: any) => b.doubtId));
       doubts = doubts.map((doubt: any) => ({
