@@ -38,12 +38,23 @@ export async function uploadVideo(
     throw new Error(`Video upload to storage failed: ${error.message}`);
   }
 
+  return objectName;
+}
+
+export async function getVideoSignedUrl(objectName: string): Promise<string> {
+  const supabase = getStorageClient();
+  if (!supabase) {
+    throw new Error(
+      "Video streaming requires Supabase Storage. Please configure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+
   const { data } = await supabase.storage
     .from(VIDEO_BUCKET)
     .createSignedUrl(objectName, SIGNED_URL_EXPIRY_SECONDS);
 
   if (!data?.signedUrl) {
-    throw new Error("Failed to create signed URL for uploaded video");
+    throw new Error("Failed to create signed URL for video");
   }
 
   return data.signedUrl;

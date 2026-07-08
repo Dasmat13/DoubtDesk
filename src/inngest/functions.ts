@@ -39,19 +39,34 @@ export const cleanupTempAssets = inngest.createFunction(
   { id: "cleanup-temp-assets", triggers: [{ cron: "0 * * * *" }] },
   async ({ step }: { step: InngestStep }) => {
     const deletedFiles = await step.run("delete-old-files", async () => {
-      const tempDir = path.join(os.tmpdir(), "doubtdesk-audio-");
-      const now = Date.now();
       const retentionMs = 24 * 60 * 60 * 1000; // 24 hours
+      const now = Date.now();
       let count = 0;
 
-      if (fs.existsSync(tempDir)) {
-        const files = fs.readdirSync(tempDir);
-        for (const file of files) {
-          const filePath = path.join(tempDir, file);
-          const stats = fs.statSync(filePath);
-          if (now - stats.mtimeMs > retentionMs) {
-            fs.unlinkSync(filePath);
-            count++;
+      const tmpRoot = os.tmpdir();
+      if (fs.existsSync(tmpRoot)) {
+        const entries = fs.readdirSync(tmpRoot);
+        for (const entry of entries) {
+          if (!entry.startsWith("doubtdesk-audio-")) continue;
+          const dirPath = path.join(tmpRoot, entry);
+          if (!fs.statSync(dirPath).isDirectory()) continue;
+
+          const files = fs.readdirSync(dirPath);
+          for (const file of files) {
+            const filePath = path.join(dirPath, file);
+            const stats = fs.statSync(filePath);
+            if (now - stats.mtimeMs > retentionMs) {
+              fs.unlinkSync(filePath);
+              count++;
+            }
+          }
+
+          if (files.length === 0 || count > 0) {
+            try {
+              fs.rmdirSync(dirPath);
+            } catch {
+              // directory not empty or other fs error; leave it
+            }
           }
         }
       }

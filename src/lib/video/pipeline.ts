@@ -227,6 +227,14 @@ Return ONLY a JSON object with a "scenes" array.`;
     inputProps,
   });
 
+  const objectName = `renders/${path.basename(outputLocation)}`;
+  let videoUrl: string;
+  try {
+    videoUrl = await uploadVideo(outputLocation, objectName);
+  } finally {
+    await fs.promises.unlink(outputLocation).catch(() => {});
+  }
+
   // Clean up temporary audio files after a successful render.
   await Promise.all(
     scenes.map(async (scene: EnrichedScene) => {
@@ -239,13 +247,6 @@ Return ONLY a JSON object with a "scenes" array.`;
       }
     }),
   ).catch((err) => console.error("Error during temp audio cleanup:", err));
-
-  // Persist the render to durable object storage (issue #321). The local
-  // /tmp path is ephemeral in serverless/Inngest execution, so upload to
-  // Supabase Storage and return a signed URL.
-  const objectName = `renders/${path.basename(outputLocation)}`;
-  const videoUrl = await uploadVideo(outputLocation, objectName);
-  await fs.promises.unlink(outputLocation).catch(() => {});
 
   return { videoUrl, videoType };
 }
