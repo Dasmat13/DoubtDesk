@@ -10,6 +10,7 @@ import {
     requireAuth,
     requireMembership,
 } from "@/lib/auth/membership-guard";
+import { escapeLike } from "@/lib/utils/utils";
 
 const normalizeTagName = (name: string) => name.trim().replace(/\s+/g, " ").toLowerCase();
 
@@ -101,7 +102,7 @@ export async function GET(req: Request) {
         ];
 
         if (query) {
-            conditions.push(ilike(tagsTable.name, `%${query}%`));
+            conditions.push(ilike(tagsTable.name, `%${escapeLike(query)}%`));
         }
 
         const tags = await db.select().from(tagsTable)
